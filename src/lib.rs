@@ -486,21 +486,24 @@ impl<K, V> Inner<K, V> {
 
 pub struct BTreeIndexMap<K, V> {
 	nodes: Slab<Node>,
-	inner: Inner<K, V>
+	inner: Inner<K, V>,
+	root: Option<usize>
 }
 
 impl<K, V> BTreeIndexMap<K, V> {
 	fn btree(&self) -> BTreeIndexMapRef<K, V> {
 		BTreeIndexMapRef {
 			nodes: &self.nodes,
-			inner: &self.inner
+			inner: &self.inner,
+			root: self.root
 		}
 	}
 
 	fn btree_mut(&mut self) -> BTreeIndexMapMut<K, V> {
 		BTreeIndexMapMut {
 			nodes: &mut self.nodes,
-			inner: &mut self.inner
+			inner: &mut self.inner,
+			root: &mut self.root
 		}
 	}
 
