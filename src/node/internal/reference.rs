@@ -1,10 +1,6 @@
+use super::{Branch, Metadata};
+use crate::{index, Inner, M};
 use generic_btree::node::Offset;
-use crate::{
-	M,
-	Inner,
-	index
-};
-use super::Metadata;
 
 /// Internal node reference.
 pub struct Ref<'a, K, V> {
@@ -12,14 +8,12 @@ pub struct Ref<'a, K, V> {
 	meta: &'a Metadata,
 
 	/// Reference to the tree data.
-	data: &'a Inner<K, V>
+	data: &'a Inner<K, V>,
 }
 
 impl<'a, K, V> Ref<'a, K, V> {
-	pub fn new(meta: &'a Metadata, data: &'a Inner<K, V>) -> Self {
-		Self {
-			meta, data
-		}
+	pub(crate) fn new(meta: &'a Metadata, data: &'a Inner<K, V>) -> Self {
+		Self { meta, data }
 	}
 }
 
@@ -29,7 +23,16 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::ItemAccess<crate::Ref<'a, K, V>> for
 	}
 
 	fn borrow_item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.branches
+					.get(i)
+					.map(Branch::item_index)
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
 
@@ -39,7 +42,16 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::ItemAccess<crate::Mut<'a, K, V>> for
 	}
 
 	fn borrow_item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.branches
+					.get(i)
+					.map(Branch::item_index)
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
 
@@ -49,7 +61,7 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::InternalRef<crate::Ref<'a, K, V>> fo
 	}
 
 	fn child_id(&self, index: usize) -> Option<usize> {
-		panic!("TODO")
+		self.meta.branches.get(index).map(|b| b.child_id)
 	}
 
 	fn max_capacity(&self) -> usize {
@@ -63,7 +75,7 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::InternalRef<crate::Mut<'a, K, V>> fo
 	}
 
 	fn child_id(&self, index: usize) -> Option<usize> {
-		panic!("TODO")
+		self.meta.branches.get(index).map(|b| b.child_id)
 	}
 
 	fn max_capacity(&self) -> usize {
@@ -71,14 +83,36 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::InternalRef<crate::Mut<'a, K, V>> fo
 	}
 }
 
-impl<'r, 'a: 'r, K, V> generic_btree::node::InternalConst<'r, crate::Ref<'a, K, V>> for Ref<'r, K, V> {
+impl<'r, 'a: 'r, K, V> generic_btree::node::InternalConst<'r, crate::Ref<'a, K, V>>
+	for Ref<'r, K, V>
+{
 	fn item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.branches
+					.get(i)
+					.map(Branch::item_index)
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
 
-impl<'r, 'a: 'r, K, V> generic_btree::node::InternalConst<'r, crate::Mut<'a, K, V>> for Ref<'r, K, V> {
+impl<'r, 'a: 'r, K, V> generic_btree::node::InternalConst<'r, crate::Mut<'a, K, V>>
+	for Ref<'r, K, V>
+{
 	fn item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.branches
+					.get(i)
+					.map(Branch::item_index)
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }

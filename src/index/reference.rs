@@ -1,17 +1,22 @@
-use std::cmp::Ordering;
-use crate::{
-	Inner,
-	item
-};
 use super::Index;
+use crate::{item, Inner};
+use std::cmp::Ordering;
 
 pub struct Ref<'a, K, V> {
 	index: Index,
-	inner: &'a Inner<K, V>
+	inner: &'a Inner<K, V>,
 }
 
 impl<'a, K, V> Ref<'a, K, V> {
-	pub fn index(&self) -> Index {
+	pub(crate) fn new(index: Index, inner: &'a Inner<K, V>) -> Self {
+		Self { index, inner }
+	}
+
+	// pub fn index(&self) -> Index {
+	// 	self.index
+	// }
+
+	pub fn into_index(self) -> Index {
 		self.index
 	}
 
@@ -20,21 +25,38 @@ impl<'a, K, V> Ref<'a, K, V> {
 	}
 }
 
-impl<'a, 'b, K1, V1, K2, V2> PartialEq<Ref<'b, K2, V2>> for Ref<'a, K1, V1> where K1: PartialEq<K2>, V1: PartialEq<V2> {
+impl<'a, 'b, K1, V1, K2, V2> PartialEq<Ref<'b, K2, V2>> for Ref<'a, K1, V1>
+where
+	K1: PartialEq<K2>,
+	V1: PartialEq<V2>,
+{
 	fn eq(&self, other: &Ref<'b, K2, V2>) -> bool {
 		self.item().eq(other.item())
 	}
 }
 
-impl<'a, K, V> Eq for Ref<'a, K, V> where K: Eq, V: Eq {}
+impl<'a, K, V> Eq for Ref<'a, K, V>
+where
+	K: Eq,
+	V: Eq,
+{
+}
 
-impl<'a, 'b, K1, V1, K2, V2> PartialOrd<Ref<'b, K2, V2>> for Ref<'a, K1, V1> where K1: PartialOrd<K2>, V1: PartialOrd<V2> {
+impl<'a, 'b, K1, V1, K2, V2> PartialOrd<Ref<'b, K2, V2>> for Ref<'a, K1, V1>
+where
+	K1: PartialOrd<K2>,
+	V1: PartialOrd<V2>,
+{
 	fn partial_cmp(&self, other: &Ref<'b, K2, V2>) -> Option<Ordering> {
 		self.item().partial_cmp(other.item())
 	}
 }
 
-impl<'a, 'b, K, V> Ord for Ref<'a, K, V> where K: Ord, V: Ord {
+impl<'a, 'b, K, V> Ord for Ref<'a, K, V>
+where
+	K: Ord,
+	V: Ord,
+{
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.item().cmp(other.item())
 	}

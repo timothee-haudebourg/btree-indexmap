@@ -3,5 +3,5 @@ pub mod leaf;
 
 pub enum Node {
 	Internal(internal::Metadata),
-	Leaf(leaf::Metadata)
+	Leaf(leaf::Metadata),
 }

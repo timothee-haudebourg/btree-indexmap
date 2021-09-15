@@ -1,21 +1,15 @@
-use generic_btree::node::Offset;
-use crate::{
-	M,
-	index,
-	Inner
-};
 use super::Metadata;
+use crate::{index, Inner, M};
+use generic_btree::node::Offset;
 
 pub struct Ref<'a, K, V> {
 	meta: &'a Metadata,
-	data: &'a Inner<K, V>
+	data: &'a Inner<K, V>,
 }
 
 impl<'a, K, V> Ref<'a, K, V> {
-	pub fn new(meta: &'a Metadata, data: &'a Inner<K, V>) -> Self {
-		Self {
-			meta, data
-		}
+	pub(crate) fn new(meta: &'a Metadata, data: &'a Inner<K, V>) -> Self {
+		Self { meta, data }
 	}
 }
 
@@ -24,8 +18,17 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::ItemAccess<crate::Ref<'a, K, V>> for
 		self.meta.items.len()
 	}
 
-	fn borrow_item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+	fn borrow_item(&self, offset: Offset) -> Option<index::Ref<'_, K, V>> {
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.items
+					.get(i)
+					.cloned()
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
 
@@ -35,7 +38,16 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::ItemAccess<crate::Mut<'a, K, V>> for
 	}
 
 	fn borrow_item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.items
+					.get(i)
+					.cloned()
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
 
@@ -45,7 +57,7 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::LeafRef<crate::Ref<'a, K, V>> for Re
 	}
 
 	fn max_capacity(&self) -> usize {
-		M+1
+		M + 1
 	}
 }
 
@@ -55,18 +67,36 @@ impl<'r, 'a: 'r, K, V> generic_btree::node::LeafRef<crate::Mut<'a, K, V>> for Re
 	}
 
 	fn max_capacity(&self) -> usize {
-		M+1
+		M + 1
 	}
 }
 
 impl<'r, 'a: 'r, K, V> generic_btree::node::LeafConst<'r, crate::Ref<'a, K, V>> for Ref<'r, K, V> {
 	fn item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.items
+					.get(i)
+					.cloned()
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
 
 impl<'r, 'a: 'r, K, V> generic_btree::node::LeafConst<'r, crate::Mut<'a, K, V>> for Ref<'r, K, V> {
 	fn item(&self, offset: Offset) -> Option<index::Ref<'r, K, V>> {
-		panic!("TODO")
+		offset
+			.value()
+			.map(|i| {
+				self.meta
+					.items
+					.get(i)
+					.cloned()
+					.map(move |index| index::Ref::new(index, self.data))
+			})
+			.flatten()
 	}
 }
